@@ -1,0 +1,86 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/btnBrowse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBrowseClicked"
+                android:text="@string/browse" />
+
+            <ImageView
+                android:id="@+id/imgThumbnail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/fuckyou"
+                android:maxHeight="80dp"
+                android:minHeight="40dp"
+                android:minWidth="40dp"
+                android:maxWidth="80dp"
+                android:src="@drawable/ic_action_search" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvFilename"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="" />
+
+        <TextView
+            android:id="@+id/tvSecretMsg"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/secretMsg" />
+
+        <EditText
+            android:id="@+id/txtSecret"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint=""
+            android:inputType="textMultiLine"
+            android:minHeight="200dp" >
+
+            <requestFocus />
+        </EditText>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/btnSetSecret"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="160dp"
+                android:onClick="onSetClicked"
+                android:text="@string/setSecret" />
+
+            <Button
+                android:id="@+id/btnGetSecret"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:onClick="onGetClicked"
+                android:text="@string/getSecret" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

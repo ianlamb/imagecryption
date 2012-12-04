@@ -1,0 +1,12 @@
+<resources>
+
+    <string name="app_name">Imagecryption</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="getSecret">Get Secret</string>
+    <string name="setSecret">Set Secret</string>
+    <string name="secretMsg">Secret Message</string>
+    <string name="browse">Choose file</string>
+    <string name="fuckyou">Yeah</string>
+
+</resources>
