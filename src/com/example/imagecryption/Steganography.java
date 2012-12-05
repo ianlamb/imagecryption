@@ -70,8 +70,12 @@ public class Steganography
 	// get bitmap from byte data
 	private static Bitmap bytesToBitmap(byte[] bytes)
 	{
-		Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-		
+		Bitmap bmp = null;
+		try{
+			bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+		}catch(Exception ex){
+			System.out.println(ex.getMessage());
+		}
 		return bmp;
 	}
 	

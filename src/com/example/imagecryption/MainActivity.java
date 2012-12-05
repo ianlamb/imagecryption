@@ -91,7 +91,8 @@ public class MainActivity extends Activity {
     			
     			filename.setText(sFile);
     			
-    			bmpImage = BitmapFactory.decodeFile(sFile);
+    			if(sFile != null)
+    				bmpImage = BitmapFactory.decodeFile(sFile);
     		}
     	}
     }
