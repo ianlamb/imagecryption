@@ -1,9 +1,13 @@
 package com.example.imagecryption;
 
-import java.io.ByteArrayOutputStream;
+//import java.io.ByteArrayOutputStream;
+//import java.nio.ByteBuffer;
+//import java.nio.IntBuffer;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Bitmap.Config;
+//import android.graphics.BitmapFactory;
+import android.graphics.Color;
 
 
 /**
@@ -22,16 +26,31 @@ public class Steganography
 	// encodes secret to bitmap
 	public static Bitmap encode(Bitmap bmp, String secret)
 	{
-		//convert all items to byte arrays: image, message, message length
+		int height = bmp.getHeight();
+		int width = bmp.getWidth();
+		
 		Bitmap newImage = null;
-		byte img[]  = getByteData(bmp);
-		byte msg[] = secret.getBytes();
-		byte len[]   = bitConversion(msg.length);
+		int[] imgPixels = new int[width * height];
+		bmp.getPixels(imgPixels, 0, width, 0, 0, width, height);
+		int density = bmp.getDensity();
+		bmp.recycle();
 		try
 		{
-			encodeText(img, len,  0); //0 first positiong
-			encodeText(img, msg, 32); //4 bytes of space for length: 4bytes*8bit = 32 bits
-			newImage = bytesToBitmap(img);
+			byte[] byteImage = LSB2bit.encodeMessage(imgPixels, width, height, secret);
+			
+			newImage = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+			newImage.setDensity(density);
+			int imgMod[] = LSB2bit.byteArrayToIntArray(byteImage);
+			int masterIndex = 0;
+			for (int j = 0; j < height; j++)
+				for (int i = 0; i < width; i++){
+                    // The unique way to write correctly the sourceBitmap, android bug!!!
+                    newImage.setPixel(i, j, Color.argb(0xFF,
+                    		imgMod[masterIndex] >> 16 & 0xFF,
+                    		imgMod[masterIndex] >> 8 & 0xFF,
+                    		imgMod[masterIndex++] & 0xFF));
+				}
+			
 		}
 		catch(Exception e)
 		{
@@ -43,41 +62,97 @@ public class Steganography
 	// decodes secret from bitmap
 	public static String decode(Bitmap bmp)
 	{
-		String secret = "";
-		byte[] decode;
-		try
+		byte[] b = null;
+		
+		try 
 		{
-			decode = decodeText(getByteData(bmp));
-			secret = new String(decode);
-		}
-		catch(Exception e)
+			int[] pixels = new int[bmp.getWidth() * bmp.getHeight()];
+			bmp.getPixels(pixels, 0, bmp.getWidth(), 0, 0, bmp.getWidth(), bmp.getHeight());
+			b = LSB2bit.convertArray(pixels);
+		} 
+		catch (OutOfMemoryError er) 
 		{
-			System.out.println(e.getMessage());
+			System.out.println( "Image too large, out of memory!");
 		}
-		return secret;
+		
+		final String vvv = LSB2bit.decodeMessage(b, bmp.getWidth(), bmp.getHeight());
+		
+		return vvv;
 	}
+	
+	
+	
+	
+	
+	
+	/**	We tried doing our own bit manipulation but we ran into problems, 
+	 * 	so we ended up using an open source library called LSB2bit
+	 * 	We left our attempted code to show our effort! :D
+	 
+	
 	
 	// get byte data from bitmap
 	private static byte[] getByteData(Bitmap bmp)
 	{	
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
-		byte[] bytes = stream.toByteArray();
+		
+//		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//		bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+//		byte[] bytes = stream.toByteArray();
+		
+		int nBytes = bmp.getWidth()*bmp.getHeight()*4; //calculate how many bytes our image consists of. Use a different value than 4 if you don't use 32bit images.
+
+		ByteBuffer buffer = ByteBuffer.allocate(nBytes); //Create a new buffer
+		bmp.copyPixelsToBuffer(buffer); //Move the byte data to the buffer
+
+		byte[] bytes = buffer.array(); //Get the underlying array containing the data.	
 		
 		return bytes;
 	}
-
-	// get bitmap from byte data
-	private static Bitmap bytesToBitmap(byte[] bytes)
+	
+	private static ByteBuffer byteArrayToByteBuffer( byte[] bytes )
 	{
-		Bitmap bmp = null;
-		try{
-			bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-		}catch(Exception ex){
-			System.out.println(ex.getMessage());
-		}
-		return bmp;
+		ByteBuffer buffer = ByteBuffer.allocate( bytes.length );
+		buffer.put( bytes );
+		buffer.position(0);
+		return buffer;
 	}
+	
+	private static IntBuffer byteArrayToIntBuffer( byte[] bytes )
+	{
+		ByteBuffer buffer = ByteBuffer.allocate( bytes.length );
+		buffer.put( bytes );
+		//buffer.position(0);
+		return buffer.asIntBuffer();
+	}
+
+//	// get bitmap from byte data
+//	private static Bitmap bytesToBitmap(byte[] bytes, int width, int height )
+//	{
+////		Bitmap bmp = null;
+////		try{
+////			bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+////		}catch(Exception ex){
+////			System.out.println(ex.getMessage());
+////		}
+////		return bmp;
+//		
+//		int nBytes = height*width*4; //calculate how many bytes our image consists of. Use a different value than 4 if you don't use 32bit images.
+//		ByteBuffer buffer = ByteBuffer.allocate(nBytes);
+//		buffer.put( bytes );
+//		buffer.position(0);
+//		
+//		Bitmap bmp = null;
+//		try
+//		{
+//			//bmp.copyPixelsFromBuffer( buffer );
+//		}
+//		catch( Exception ex )
+//		{
+//			System.out.println( ex.getMessage() );
+//		}
+//		
+//		return bmp;
+//	}
 	
 	// convert int to byte array
 	private static byte[] bitConversion(int i)
@@ -133,10 +208,18 @@ public class Steganography
 		{
 			length = (length << 1) | (image[i] & 1);
 		}
+
+		byte[] result = null;
+		try
+		{
+			result = new byte[length];
+		}
+		catch( Exception ex )
+		{
+			System.out.println("Error, the size of the message to be read was too large, causing: " + ex.getMessage() );
+		}
 		
-		byte[] result = new byte[length];
-		
-		//loop through each byte of text
+		//loop through each byte of text     	
 		for(int b=0; b<result.length; ++b )
 		{
 			//loop through each bit within a byte of text
@@ -148,5 +231,6 @@ public class Steganography
 		}
 		return result;
 	}
+	
+	*/
 }
-

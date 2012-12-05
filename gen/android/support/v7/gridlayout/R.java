@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package com.example.imagecryption;
+package android.support.v7.gridlayout;
 
 public final class R {
     public static final class attr {
